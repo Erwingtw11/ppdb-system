@@ -5,10 +5,118 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  name              String
+  email             String   @unique
+  password          String
+  email_verified    Boolean  @default(false)
+  verification_code String?
+  created_at        DateTime @default(now())
+
+  student Student?
+}
+
+model Student {
+  id           String   @id @default(uuid())
+  user_id      String   @unique
+  full_name    String
+  nisn         String
+  birth_place  String
+  birth_date   DateTime
+  address      String
+  religion     String
+  gender       String
+  status       String   @default("pending")
+  created_at   DateTime @default(now())
+
+  user      User      @relation(fields: [user_id], references: [id])
+  parents   Parent?
+  documents Document?
+  answers   Answer[]
+  result    TestResult?
+  announce  Announcement?
+}
+
+model Parent {
+  id          String @id @default(uuid())
+  student_id  String @unique
+  father_name String
+  father_job  String
+  mother_name String
+  mother_job  String
+  income      String
+  address     String
+
+  student Student @relation(fields: [student_id], references: [id])
+}
+
+model Document {
+  id                 String @id @default(uuid())
+  student_id         String @unique
+  photo              String?
+  birth_certificate  String?
+  ijazah             String?
+  kk                 String?
+  health_certificate String?
+
+  student Student @relation(fields: [student_id], references: [id])
+}
+
+model Test {
+  id         String   @id @default(uuid())
+  test_name  String
+  test_date  DateTime
+  start_time String
+  end_time   String
+  location   String
+}
+
+model Question {
+  id             String @id @default(uuid())
+  question       String
+  option_a       String
+  option_b       String
+  option_c       String
+  option_d       String
+  correct_answer String
+
+  answers Answer[]
+}
+
+model Answer {
+  id          String @id @default(uuid())
+  student_id  String
+  question_id String
+  answer      String
+
+  student  Student  @relation(fields: [student_id], references: [id])
+  question Question @relation(fields: [question_id], references: [id])
+}
+
+model TestResult {
+  id         String @id @default(uuid())
+  student_id String @unique
+  score      Int
+  status     String
+
+  student Student @relation(fields: [student_id], references: [id])
+}
+
+model Announcement {
+  id          String   @id @default(uuid())
+  student_id  String   @unique
+  result      String
+  description String
+  announced_at DateTime @default(now())
+
+  student Student @relation(fields: [student_id], references: [id])
 }
